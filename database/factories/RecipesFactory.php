@@ -17,7 +17,10 @@ class RecipesFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'title' => $this->faker->name(),
+            'description' => $this->faker->text(),
+            'ingredients' => $this->faker->text(),
+            'preparation' => $this->faker->text(),
         ];
     }
 }
