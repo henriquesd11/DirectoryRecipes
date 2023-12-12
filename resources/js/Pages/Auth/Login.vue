@@ -37,6 +37,14 @@ const submit = () => {
         </div>
 
         <form @submit.prevent="submit">
+            <div class="header">
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight text-center">
+                    Acessar
+                </h2>
+            </div>
+            <div class="diviser">
+                <hr class="mt-2 mb-6" />
+            </div>
             <div>
                 <InputLabel for="email" value="E-mail" />
 
