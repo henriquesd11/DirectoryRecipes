@@ -17,11 +17,6 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::get('/', function () {
-    return Inertia::render('Auth/Login');
-})->name('home-login');
-
 Route::get('/home', function () {
     return Inertia::render('Home');
 })->middleware(['auth', 'verified'])->name('home');
@@ -35,6 +30,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [RecipesController::class, 'create'])->name('recipes.create');
         Route::post('/store', [RecipesController::class, 'store'])->name('recipes.store');
         Route::get('/list', [RecipesController::class, 'list'])->name('recipes.list');
+        Route::delete('/{id}', [RecipesController::class, 'destroy'])->name('recipes.delete');
+        Route::get('/{id}/edit', [RecipesController::class, 'edit'])->name('recipes.edit');
+        Route::put('/{id}', [RecipesController::class, 'update'])->name('recipes.update');
     });
 });
 
