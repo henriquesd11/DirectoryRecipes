@@ -5,14 +5,19 @@ import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
 import DangerButton from '@/Components/DangerButton.vue';
 import { inject, ref } from 'vue';
+import WarningButton from '@/Components/WarningButton.vue';
 
 const Toast = inject('Toast');
-
+const searchItem = ref('');
 getListRecipes();
 const list = ref([]);
 const selectedRecipe = ref(null);
+
 function getListRecipes() {
-    axios.get('/recipes/list').then(response => {
+    const params = {
+        search: searchItem.value,
+    }
+    axios.get('/recipes/list', { params }).then(response => {
         list.value = response.data.recipes.data;
     }).catch(error => {
         console.log(error);
@@ -29,14 +34,37 @@ function closeModal() {
 
 function removeRecipe(id) {
 
-    // print toask confirm delete
-
-    axios.delete(`/recipes/${id}`).then(response => {
-        Toast.success(response.data.message);
-        getListRecipes();
-    }).catch(error => {
-        Toast.error(error.response.data.message);
+    Toast.fire({
+        title: 'Você tem certeza?',
+        text: "Não será possível reverter esta ação!",
+        icon: 'warning',
+        showConfirmButton: true,
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sim, remover!',
+    }).then(result => {
+        if (result.isConfirmed) {
+            axios.delete(`/recipes/${id}`).then(response => {
+                Toast.fire({
+                    title: 'Removido!',
+                    text: response.data.message,
+                    icon: 'success',
+                });
+                getListRecipes();
+            }).catch(error => {
+                Toast.fire({
+                    title: 'Erro!',
+                    text: error.response.data.message,
+                    icon: 'error',
+                });
+            });
+        }
     });
+}
+
+function goToEdit(id) {
+    window.location.href = `/recipes/${id}/edit`;
 }
 
 </script>
@@ -53,6 +81,15 @@ function removeRecipe(id) {
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
+                        <label for="searchTerm" class="block text-sm font-medium text-gray-700">Buscar receitas</label>
+                        <div class="grid grid-cols-12 gap-4">
+                            <input placeholder="Buscar Por: Nome, Modo de Preparo, Ingredientes etc..." type="text" id="searchTerm" v-model="searchItem" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm col-span-11">
+                            <DefaultButton @click="getListRecipes()">
+                                <svg class="h-8 w-8 text-white"  width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">  <path stroke="none" d="M0 0h24v24H0z"/>  <circle cx="10" cy="10" r="7" />  <line x1="21" y1="21" x2="15" y2="15" /></svg>
+                            </DefaultButton>
+                        </div>
+                    </div>
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -76,9 +113,10 @@ function removeRecipe(id) {
                                     {{ recipe.description }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="grid grid-cols-2 gap-1">
+                                    <div class="grid grid-cols-3 gap-4">
                                         <DefaultButton @click="openModal(recipe)">Visualizar</DefaultButton>
-                                        <DangerButton @click="openModal(recipe)">Remover</DangerButton>
+                                        <WarningButton @click="goToEdit(recipe.id)">Editar</WarningButton>
+                                        <DangerButton @click="removeRecipe(recipe.id)">Remover</DangerButton>
                                     </div>
                                 </td>
                             </tr>
@@ -99,14 +137,14 @@ function removeRecipe(id) {
                                             </h3>
                                             <div class="mt-2">
                                                 <p class="text-sm text-gray-500">
-                                                    <h3>Ingredientes</h3>
-                                                    <hr class="my-3"/>
-                                                    <div v-html="selectedRecipe.ingredients"></div>
+                                                <h3>Ingredientes</h3>
+                                                <hr class="my-3" />
+                                                <div v-html="selectedRecipe.ingredients"></div>
                                                 </p>
                                                 <p class="text-sm text-gray-500 my-8">
-                                                    <h3>Modo de Preparo</h3>
-                                                    <hr class="my-3"/>
-                                                    <div v-html="selectedRecipe.preparation"></div>
+                                                <h3>Modo de Preparo</h3>
+                                                <hr class="my-3" />
+                                                <div v-html="selectedRecipe.preparation"></div>
                                                 </p>
                                             </div>
                                         </div>
@@ -124,4 +162,5 @@ function removeRecipe(id) {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout></template>
+    </AuthenticatedLayout>
+</template>

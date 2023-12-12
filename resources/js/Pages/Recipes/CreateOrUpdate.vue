@@ -9,10 +9,14 @@ import SuccessButton from '@/Components/SuccessButton.vue';
 
 const Toast = inject('Toast');
 
-const valueName = ref('');
-const valueDescription = ref('');
-const valueIngredients = ref('');
-const valuePreparation = ref('');
+const props = defineProps({
+    recipe: Object,
+});
+
+const valueName = ref(props?.recipe?.title);
+const valueDescription = ref(props?.recipe?.description);
+const valueIngredients = ref(props?.recipe?.ingredients);
+const valuePreparation = ref(props?.recipe?.preparation);
 const ingredients = ref(false);
 const preparation = ref(false);
 
@@ -26,27 +30,35 @@ function showPreparation() {
     preparation.value = true;
 }
 
-function post() {
-    axios.post('/recipes/store', {
-        title: 'Receita de bolo',
+function submit() {
+    const axiosMethod = props?.recipe ? 'put' : 'post';
+    const axiosUrl = props?.recipe ? `/recipes/${props.recipe.id}` : '/recipes/store';
+
+    axios[axiosMethod](axiosUrl, {
+        title: valueName.value,
         description: valueDescription.value,
         ingredients: valueIngredients.value,
-        preparation: valuePreparation.value
+        preparation: valuePreparation.value,
     }).then(response => {
         Toast.fire({
-            icon: response.data.status,
-            title: response.data.message
+            title: 'Sucesso!',
+            text: response.data.message,
+            icon: 'success',
         });
+        setTimeout(() => {
+            window.location.href = '/home';
+        }, 1000);
     }).catch(error => {
-        let message = "Ocorreu um erro ao salvar a receita";
-        if (error.response.data?.errors) {
-            message = "Existe campos inválidos";
-        }
         Toast.fire({
+            title: 'Erro!',
+            text: "Ocorreu um erro ao salvar a receita, tente novamente!",
             icon: 'error',
-            title: message
         });
     });
+}
+
+function update() {
+
 }
 </script>
 <template>
@@ -54,7 +66,7 @@ function post() {
     <AuthenticatedLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                CRIAR RECEITA
+                {{ props?.recipe ? "ATUALIZAR" : "CRIAR" }} RECEITA
             </h2>
         </template>
 
@@ -64,7 +76,7 @@ function post() {
                     <div class="grid grid-cols-3 gap-4">
                         <div class="p-6 dark:text-gray-800 border col-span-12 border-gray-200 rounded-lg shadow">
                             <div class="grid grid-cols-3 gap-4 py-4">
-                                <SuccessButton class="col-end-7 col-span-2" v-on:click="post()">
+                                <SuccessButton class="col-end-7 col-span-2" v-on:click="submit()">
                                     Salvar
                                 </SuccessButton>
                             </div>
